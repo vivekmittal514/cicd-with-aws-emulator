@@ -10,8 +10,8 @@ resource "aws_db_instance" "oracle" {
   storage_type          = "gp3"
   storage_encrypted     = true
 
-  db_name  = "APPDB"
-  username = "oraadmin"
+  db_name                     = "APPDB"
+  username                    = "oraadmin"
   manage_master_user_password = true
 
   db_subnet_group_name   = aws_db_subnet_group.main.name
@@ -19,9 +19,9 @@ resource "aws_db_instance" "oracle" {
   multi_az               = var.environment == "prod"
   publicly_accessible    = false
 
-  backup_retention_period = var.environment == "prod" ? 7 : 1
-  deletion_protection     = var.environment == "prod"
-  skip_final_snapshot     = var.environment != "prod"
+  backup_retention_period   = var.environment == "prod" ? 7 : 1
+  deletion_protection       = var.environment == "prod"
+  skip_final_snapshot       = var.environment != "prod"
   final_snapshot_identifier = var.environment == "prod" ? "${var.project_name}-oracle-final" : null
 
   performance_insights_enabled = var.environment == "prod"

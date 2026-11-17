@@ -1,16 +1,16 @@
 resource "aws_rds_cluster" "aurora_postgresql" {
-  cluster_identifier     = "${var.project_name}-${var.environment}-aurora-pg"
-  engine                 = "aurora-postgresql"
-  engine_version         = var.aurora_engine_version
-  database_name          = "appdb"
-  master_username        = "dbadmin"
+  cluster_identifier          = "${var.project_name}-${var.environment}-aurora-pg"
+  engine                      = "aurora-postgresql"
+  engine_version              = var.aurora_engine_version
+  database_name               = "appdb"
+  master_username             = "dbadmin"
   manage_master_user_password = true
-  db_subnet_group_name   = aws_db_subnet_group.main.name
-  vpc_security_group_ids = [aws_security_group.aurora.id]
-  storage_encrypted      = true
-  deletion_protection    = var.environment == "prod"
-  skip_final_snapshot    = var.environment != "prod"
-  final_snapshot_identifier = var.environment == "prod" ? "${var.project_name}-aurora-final" : null
+  db_subnet_group_name        = aws_db_subnet_group.main.name
+  vpc_security_group_ids      = [aws_security_group.aurora.id]
+  storage_encrypted           = true
+  deletion_protection         = var.environment == "prod"
+  skip_final_snapshot         = var.environment != "prod"
+  final_snapshot_identifier   = var.environment == "prod" ? "${var.project_name}-aurora-final" : null
 
   tags = { Name = "${var.project_name}-aurora-postgresql" }
 }

@@ -1,13 +1,13 @@
 resource "aws_mq_broker" "main" {
   broker_name = "${var.project_name}-${var.environment}-mq"
 
-  engine_type        = "ActiveMQ"
-  engine_version     = var.mq_engine_version
-  host_instance_type = var.mq_broker_instance_type
-  deployment_mode    = var.environment == "prod" ? "ACTIVE_STANDBY_MULTI_AZ" : "SINGLE_INSTANCE"
+  engine_type         = "ActiveMQ"
+  engine_version      = var.mq_engine_version
+  host_instance_type  = var.mq_broker_instance_type
+  deployment_mode     = var.environment == "prod" ? "ACTIVE_STANDBY_MULTI_AZ" : "SINGLE_INSTANCE"
   publicly_accessible = false
-  subnet_ids         = var.environment == "prod" ? slice(aws_subnet.private[*].id, 0, 2) : [aws_subnet.private[0].id]
-  security_groups    = [aws_security_group.mq.id]
+  subnet_ids          = var.environment == "prod" ? slice(aws_subnet.private[*].id, 0, 2) : [aws_subnet.private[0].id]
+  security_groups     = [aws_security_group.mq.id]
 
   auto_minor_version_upgrade = true
   apply_immediately          = var.environment != "prod"
