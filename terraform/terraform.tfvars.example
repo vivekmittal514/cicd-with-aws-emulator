@@ -1,0 +1,5 @@
+aws_region       = "us-east-1"
+environment      = "dev"
+project_name     = "cicd-emulator"
+state_bucket     = "my-terraform-state-bucket"
+state_lock_table = "terraform-locks"
