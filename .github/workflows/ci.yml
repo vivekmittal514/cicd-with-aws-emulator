@@ -64,8 +64,7 @@ jobs:
             --name aws-emulator-ci \
             --memory=2g --memory-swap=2g \
             -p "127.0.0.1:${EMULATOR_PORT}:${EMULATOR_PORT}" \
-            -e HOME="$HOME" \
-            -v "$HOME/.aws/emulator:$HOME/.aws/emulator" \
+            -v "$HOME/.aws/emulator:/home/emulator/.aws/emulator" \
             aws-emulator -p "$EMULATOR_PORT"
 
       - name: Wait for emulator
