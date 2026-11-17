@@ -1,7 +1,7 @@
 resource "aws_db_instance" "oracle" {
   identifier     = "${var.project_name}-${var.environment}-oracle"
   engine         = "oracle-ee"
-  engine_version = var.oracle_engine_version
+  engine_version = "19"
   instance_class = var.oracle_instance_class
   license_model  = "bring-your-own-license"
 

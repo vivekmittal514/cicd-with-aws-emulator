@@ -1,7 +1,7 @@
 resource "aws_mq_broker" "main" {
   broker_name = "${var.project_name}-${var.environment}-mq"
 
-  engine_type         = "ActiveMQ"
+  engine_type         = "ACTIVEMQ"
   engine_version      = var.mq_engine_version
   host_instance_type  = var.mq_broker_instance_type
   deployment_mode     = var.environment == "prod" ? "ACTIVE_STANDBY_MULTI_AZ" : "SINGLE_INSTANCE"
@@ -30,8 +30,9 @@ resource "aws_mq_broker" "main" {
 }
 
 resource "random_password" "mq_password" {
-  length  = 24
-  special = true
+  length           = 24
+  special          = true
+  override_special = "!@#$%^&*()-_+[]{}|;'<>.?/"
 }
 
 resource "aws_security_group" "mq" {

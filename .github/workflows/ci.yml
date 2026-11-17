@@ -24,6 +24,7 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
       - name: Terraform Format Check
         working-directory: terraform
@@ -51,6 +52,7 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
       - name: Build AWS Emulator image
         run: docker build -t aws-emulator docker/aws-emulator/
@@ -96,19 +98,38 @@ jobs:
           echo "AWS_SECRET_ACCESS_KEY=" >> "$GITHUB_ENV"
           echo "AWS_SESSION_TOKEN=" >> "$GITHUB_ENV"
 
-      - name: Terraform Plan (against emulator)
-        working-directory: terraform
-        run: |
-          terraform init -backend=false
-          terraform plan -input=false || true
-
       - name: Install test dependencies
         run: pip install -r tests/requirements.txt
 
-      - name: Run integration tests
+      # Phase 1: API-level integration tests
+      - name: "Phase 1: API integration tests"
         run: |
           python -m pytest tests/ -v --tb=short \
-            --junitxml=test-results/results.xml
+            --ignore=tests/test_post_apply.py \
+            --junitxml=test-results/api-tests.xml
+
+      # Phase 2: Terraform apply to emulator
+      - name: Terraform Init (emulator)
+        working-directory: terraform
+        run: terraform init -backend=false -input=false
+
+      - name: Terraform Plan (emulator)
+        working-directory: terraform
+        run: terraform plan -out=tfplan -input=false
+
+      - name: Terraform Apply (emulator)
+        working-directory: terraform
+        run: terraform apply -auto-approve tfplan
+
+      - name: Terraform Outputs
+        working-directory: terraform
+        run: terraform output
+
+      # Phase 3: Post-apply verification tests
+      - name: "Phase 3: Post-apply verification tests"
+        run: |
+          python -m pytest tests/test_post_apply.py -v --tb=short \
+            --junitxml=test-results/post-apply-tests.xml
 
       - name: Upload test results
         if: always()

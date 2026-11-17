@@ -1,6 +1,6 @@
 # CI/CD with AWS Emulator
 
-A sample CI/CD pipeline using **Terraform** for IaC and **AWS Emulator** for ephemeral test environments. GitHub Actions runs integration tests against a local AWS Emulator before deploying to real AWS.
+A sample CI/CD pipeline using **Terraform** for IaC and **AWS Emulator** for ephemeral test environments. GitHub Actions runs a 3-phase test pipeline against a local AWS Emulator before deploying to real AWS.
 
 ## Architecture
 
@@ -11,15 +11,25 @@ PR/Push ──> GitHub Actions CI
               ├── Security Scan (tfsec, checkov)
               └── Ephemeral Environment (AWS Emulator)
                     │
-                    ├── Start AWS Emulator (Docker)
-                    ├── Terraform Plan (against emulator)
-                    └── Integration Tests (boto3 + pytest)
+                    ├── Phase 1: API Integration Tests (boto3 + pytest)
+                    ├── Phase 2: Terraform Apply (provision resources in emulator)
+                    └── Phase 3: Post-Apply Verification Tests
                           │
                           └── All pass ──> CD Pipeline
                                             ├── Dev
                                             ├── Staging
                                             └── Production
 ```
+
+## 3-Phase Test Pipeline
+
+| Phase | What it does | How |
+|---|---|---|
+| Phase 1: API tests | Validates AWS APIs work on the emulator | boto3 creates resources directly, asserts responses |
+| Phase 2: Terraform apply | Provisions the full infrastructure stack in the emulator | `terraform apply` against emulator endpoint |
+| Phase 3: Post-apply tests | Verifies Terraform-created resources exist and are configured correctly | boto3 queries resources using Terraform outputs |
+
+Phase 1 and Phase 2 create resources independently. Phase 1 uses `test-` prefixed or UUID-based names. Terraform uses `project-environment` naming. They don't collide.
 
 ## AWS Resources
 
@@ -40,6 +50,17 @@ AWS Emulator runs as a Docker container on port 9297. Your AWS SDK points at it 
 
 The emulator keeps all resources in memory and deletes them when it stops, giving each CI run a clean state.
 
+Key environment variables that redirect the SDK:
+
+| Variable | Purpose |
+|---|---|
+| `AWS_ENDPOINT_URL` | Points all API calls to `https://127.0.0.1:9297` |
+| `AWS_SHARED_CREDENTIALS_FILE` | Uses emulator-generated access keys |
+| `AWS_CONFIG_FILE` | Uses emulator config (region, endpoint, signing) |
+| `AWS_CA_BUNDLE` | Trusts emulator's self-signed TLS certificate |
+
+Your application code never changes. The same boto3 calls and Terraform configs work against both the emulator and real AWS.
+
 ## Local Development
 
 ### Prerequisites
@@ -47,41 +68,31 @@ The emulator keeps all resources in memory and deletes them when it stops, givin
 - Docker
 - Terraform >= 1.5
 - Python >= 3.12
-- AWS CLI >= 2.35.0 (for the emulator skill)
 
-### Start the emulator
+### Run the full pipeline locally
 
 ```bash
 chmod +x scripts/*.sh
-./scripts/setup-emulator.sh
+./scripts/setup-emulator.sh    # Start emulator
+./scripts/run-tests.sh         # Run all 3 phases
+./scripts/teardown-emulator.sh # Stop emulator
 ```
 
-### Run tests locally
-
-The test script sets up a Python venv, configures emulator env vars, runs Terraform validation, and runs all integration tests:
-
-```bash
-./scripts/run-tests.sh
-```
-
-### Stop the emulator
-
-```bash
-./scripts/teardown-emulator.sh
-```
+`run-tests.sh` creates a Python venv, runs Phase 1 API tests, applies Terraform, and runs Phase 3 post-apply verification.
 
 ## CI/CD Pipeline
 
 ### CI (`.github/workflows/ci.yml`)
 
 Runs on every push and PR:
-1. Terraform format and validation
+1. Terraform format check and validation
 2. Security scanning (tfsec, checkov)
-3. Builds AWS Emulator Docker image
-4. Starts emulator as a service container
-5. Runs `terraform plan` against the emulator
-6. Runs pytest integration tests against emulator
-7. Stops emulator
+3. Build AWS Emulator Docker image
+4. Start emulator
+5. **Phase 1:** API integration tests (15 tests across S3, EC2, Aurora, EKS, MQ)
+6. **Phase 2:** Terraform init, plan, and apply against emulator
+7. **Phase 3:** Post-apply verification tests (9 tests verifying Terraform-created resources)
+8. Stop emulator
 
 ### CD (`.github/workflows/cd.yml`)
 
@@ -103,7 +114,7 @@ Runs after CI passes on `main`:
 ```
 .
 ├── .github/workflows/     # CI/CD pipelines
-│   ├── ci.yml             # Test with AWS Emulator
+│   ├── ci.yml             # 3-phase test with AWS Emulator
 │   └── cd.yml             # Deploy to AWS
 ├── terraform/             # Infrastructure as Code
 │   ├── providers.tf
@@ -120,12 +131,13 @@ Runs after CI passes on `main`:
 ├── docker/aws-emulator/   # Emulator Docker image
 │   └── Dockerfile
 ├── tests/                 # Integration tests
-│   ├── conftest.py
-│   ├── test_s3.py
-│   ├── test_ec2.py
-│   ├── test_aurora.py
-│   ├── test_eks.py
-│   └── test_mq.py
+│   ├── conftest.py        # Shared fixtures (boto3 clients)
+│   ├── test_s3.py         # Phase 1: S3 API tests
+│   ├── test_ec2.py        # Phase 1: EC2 API tests
+│   ├── test_aurora.py     # Phase 1: Aurora API tests
+│   ├── test_eks.py        # Phase 1: EKS API tests
+│   ├── test_mq.py         # Phase 1: MQ API tests
+│   └── test_post_apply.py # Phase 3: Post-apply verification
 ├── app/                   # Sample application
 │   └── main.py
 └── scripts/               # Helper scripts
@@ -133,6 +145,42 @@ Runs after CI passes on `main`:
     ├── run-tests.sh
     └── teardown-emulator.sh
 ```
+
+## Emulator Fidelity
+
+Fidelity measures how closely the emulator matches real AWS behavior for each API call. A score like "40 of 50" means 40 out of 50 fidelity tests pass for that service.
+
+### Checking fidelity scores
+
+1. **Published scores**: check the [AWS Emulator releases page](https://github.com/aws/aws-emulator/releases) for per-service pass/total counts with each release.
+
+2. **Run fidelity tests yourself** against your local emulator:
+
+```bash
+git clone https://github.com/aws/aws-emulator-evaluation-suite.git
+cd aws-emulator-evaluation-suite
+pip install -r requirements.txt
+python -m fidelity_tests_runner
+```
+
+3. **Check your specific project** using the AWS CLI emulator skill:
+
+```bash
+aws agent-toolkit add-skill --skill-name aws-emulator --region us-east-1
+```
+
+Then ask your AI coding agent: "Check whether my project works with AWS Emulator."
+
+### Known fidelity gaps in this project
+
+Some Terraform resources hit emulator fidelity gaps during apply:
+- Aurora: `DescribeGlobalClusters` filter not supported
+- S3: bucket names may collide with API test resources from Phase 1
+- EC2: subnet AZ propagation requires explicit `availability_zone`
+- MQ: engine type requires uppercase (`ACTIVEMQ` not `ActiveMQ`)
+- RDS Oracle: specific engine version strings not recognized
+
+Post-apply tests gracefully skip resources that weren't created. As the emulator improves, more resources will pass.
 
 ## Emulator Limitations
 

@@ -1,7 +1,6 @@
 resource "aws_rds_cluster" "aurora_postgresql" {
   cluster_identifier          = "${var.project_name}-${var.environment}-aurora-pg"
   engine                      = "aurora-postgresql"
-  engine_version              = var.aurora_engine_version
   database_name               = "appdb"
   master_username             = "dbadmin"
   manage_master_user_password = true
@@ -12,6 +11,10 @@ resource "aws_rds_cluster" "aurora_postgresql" {
   skip_final_snapshot         = var.environment != "prod"
   final_snapshot_identifier   = var.environment == "prod" ? "${var.project_name}-aurora-final" : null
 
+  lifecycle {
+    ignore_changes = [global_cluster_identifier]
+  }
+
   tags = { Name = "${var.project_name}-aurora-postgresql" }
 }
 
@@ -21,7 +24,6 @@ resource "aws_rds_cluster_instance" "aurora_instances" {
   cluster_identifier = aws_rds_cluster.aurora_postgresql.id
   instance_class     = var.aurora_instance_class
   engine             = aws_rds_cluster.aurora_postgresql.engine
-  engine_version     = aws_rds_cluster.aurora_postgresql.engine_version
 }
 
 resource "aws_security_group" "aurora" {
