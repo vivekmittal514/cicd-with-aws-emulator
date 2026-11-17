@@ -20,6 +20,7 @@ resource "aws_instance" "windows" {
   availability_zone      = local.azs[0]
   vpc_security_group_ids = [aws_security_group.app.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
+  monitoring             = true
 
   metadata_options {
     http_tokens   = "required"

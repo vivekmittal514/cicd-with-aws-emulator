@@ -109,6 +109,66 @@ Runs after CI passes on `main`:
 | `AWS_ROLE_ARN_STAGING` | IAM role ARN for staging |
 | `AWS_ROLE_ARN_PROD` | IAM role ARN for production |
 
+## Try It Yourself
+
+Fork and test the CI/CD pipeline with a real change:
+
+### 1. Fork and clone
+
+```bash
+gh repo fork vivekmittal514/cicd-with-aws-emulator --clone
+cd cicd-with-aws-emulator
+```
+
+### 2. Create a branch and make a change
+
+```bash
+git checkout -b feat/add-s3-lifecycle
+```
+
+Add an S3 lifecycle rule to `terraform/s3.tf`. Open the file and add this block after the `aws_s3_bucket_public_access_block.app_data` resource:
+
+```hcl
+resource "aws_s3_bucket_lifecycle_configuration" "app_data" {
+  bucket = aws_s3_bucket.app_data.id
+
+  rule {
+    id     = "expire-old-versions"
+    status = "Enabled"
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+  }
+}
+```
+
+### 3. Format, commit, and push
+
+```bash
+cd terraform && terraform fmt && cd ..
+git add terraform/s3.tf
+git commit -m "feat: add S3 lifecycle rule to expire old object versions"
+git push origin feat/add-s3-lifecycle
+```
+
+### 4. Open a pull request
+
+```bash
+gh pr create --title "feat: add S3 lifecycle rule" \
+  --body "Adds a lifecycle rule to expire noncurrent S3 object versions after 30 days."
+```
+
+### 5. Watch the CI pipeline
+
+Go to the **Actions** tab in your fork. You will see:
+
+1. **Terraform Validate** - checks formatting and syntax
+2. **Integration Tests** - starts the AWS Emulator, runs API tests, applies Terraform, runs post-apply verification
+3. **Security Scan** - runs tfsec and Checkov against the Terraform code
+
+All three jobs should pass. The emulator tests prove your lifecycle rule is valid Terraform without needing an AWS account.
+
 ## Project Structure
 
 ```

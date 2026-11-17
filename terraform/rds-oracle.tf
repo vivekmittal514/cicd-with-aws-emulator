@@ -19,10 +19,11 @@ resource "aws_db_instance" "oracle" {
   multi_az               = var.environment == "prod"
   publicly_accessible    = false
 
-  backup_retention_period   = var.environment == "prod" ? 7 : 1
-  deletion_protection       = var.environment == "prod"
-  skip_final_snapshot       = var.environment != "prod"
-  final_snapshot_identifier = var.environment == "prod" ? "${var.project_name}-oracle-final" : null
+  auto_minor_version_upgrade = true
+  backup_retention_period    = var.environment == "prod" ? 7 : 1
+  deletion_protection        = var.environment == "prod"
+  skip_final_snapshot        = var.environment != "prod"
+  final_snapshot_identifier  = var.environment == "prod" ? "${var.project_name}-oracle-final" : null
 
   performance_insights_enabled = var.environment == "prod"
   monitoring_interval          = var.environment == "prod" ? 60 : 0
@@ -32,9 +33,11 @@ resource "aws_db_instance" "oracle" {
 
 resource "aws_security_group" "oracle" {
   name_prefix = "${var.project_name}-oracle-"
+  description = "Security group for RDS Oracle instance"
   vpc_id      = aws_vpc.main.id
 
   ingress {
+    description     = "Oracle SQL*Net from application layer"
     from_port       = 1521
     to_port         = 1521
     protocol        = "tcp"
@@ -42,6 +45,7 @@ resource "aws_security_group" "oracle" {
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"

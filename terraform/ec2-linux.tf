@@ -20,6 +20,7 @@ resource "aws_instance" "linux" {
   availability_zone      = local.azs[0]
   vpc_security_group_ids = [aws_security_group.app.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
+  monitoring             = true
 
   metadata_options {
     http_tokens   = "required"
@@ -37,9 +38,11 @@ resource "aws_instance" "linux" {
 
 resource "aws_security_group" "app" {
   name_prefix = "${var.project_name}-app-"
+  description = "Security group for application instances"
   vpc_id      = aws_vpc.main.id
 
   ingress {
+    description = "HTTPS from VPC"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -47,6 +50,7 @@ resource "aws_security_group" "app" {
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"

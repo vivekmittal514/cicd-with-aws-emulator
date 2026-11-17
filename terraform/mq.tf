@@ -37,6 +37,7 @@ resource "random_password" "mq_password" {
 
 resource "aws_security_group" "mq" {
   name_prefix = "${var.project_name}-mq-"
+  description = "Security group for Amazon MQ broker"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -56,6 +57,7 @@ resource "aws_security_group" "mq" {
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"

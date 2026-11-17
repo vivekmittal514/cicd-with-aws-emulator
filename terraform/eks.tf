@@ -88,9 +88,11 @@ resource "aws_iam_role_policy_attachment" "eks_ecr_policy" {
 
 resource "aws_security_group" "eks_cluster" {
   name_prefix = "${var.project_name}-eks-"
+  description = "Security group for EKS cluster control plane"
   vpc_id      = aws_vpc.main.id
 
   ingress {
+    description = "HTTPS API server from VPC"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -98,6 +100,7 @@ resource "aws_security_group" "eks_cluster" {
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
