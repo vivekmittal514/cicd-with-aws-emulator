@@ -8,7 +8,6 @@ A sample CI/CD pipeline using **Terraform** for IaC and **AWS Emulator** for eph
 PR/Push ──> GitHub Actions CI
               │
               ├── Terraform Validate + Format
-              ├── Security Scan (tfsec, checkov)
               └── Ephemeral Environment (AWS Emulator)
                     │
                     ├── Phase 1: API Integration Tests (boto3 + pytest)
@@ -81,8 +80,7 @@ chmod +x scripts/*.sh
 
 Runs on every push and PR:
 1. Terraform format check and validation
-2. Security scanning (tfsec, checkov)
-3. Build AWS Emulator Docker image
+2. Build AWS Emulator Docker image
 4. Start emulator
 5. **Phase 1:** API integration tests (15 tests across S3, EC2, Aurora, EKS, MQ)
 6. **Phase 2:** Terraform init, plan, and apply against emulator
@@ -145,9 +143,8 @@ Go to the **Actions** tab in your fork. You will see:
 
 1. **Terraform Validate** - checks formatting and syntax
 2. **Integration Tests** - starts the AWS Emulator, runs API tests, applies Terraform, runs post-apply verification
-3. **Security Scan** - runs tfsec and Checkov against the Terraform code
 
-All three jobs should pass. The emulator tests prove your lifecycle rule is valid Terraform without needing an AWS account.
+Both jobs should pass. The emulator tests prove your lifecycle rule is valid Terraform without needing an AWS account.
 
 ## Project Structure
 
