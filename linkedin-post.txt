@@ -1,0 +1,25 @@
+Testing AWS infrastructure without an AWS account? 𝗔𝗪𝗦 𝗘𝗺𝘂𝗹𝗮𝘁𝗼𝗿 makes it real.
+
+Last week AWS launched AWS Emulator — a local emulator that runs AWS service APIs on your machine. No credentials, no cost, no cloud account needed.
+
+I built a sample project that shows how to use it in a CI/CD pipeline with GitHub Actions and Terraform:
+
+𝗪𝗵𝗮𝘁 𝗶𝘁 𝗱𝗼𝗲𝘀:
+→ Spins up an AWS Emulator in Docker during CI
+→ Runs Terraform plan and apply against the emulator
+→ Validates 8 AWS resource types: Aurora PostgreSQL, S3, EKS, Amazon MQ, RDS Oracle, EC2 (Linux + Windows), and VPC
+→ Runs 24 integration tests across 3 phases, all passing in under 4 minutes
+
+𝗧𝗵𝗲 𝟯-𝗽𝗵𝗮𝘀𝗲 𝗽𝗶𝗽𝗲𝗹𝗶𝗻𝗲:
+1️⃣ API integration tests (boto3 calls directly against the emulator)
+2️⃣ Terraform apply (provisions the full infrastructure stack in the emulator)
+3️⃣ Post-apply verification (confirms Terraform-created resources exist)
+
+𝗧𝗿𝘆 𝗶𝘁 𝘆𝗼𝘂𝗿𝘀𝗲𝗹𝗳:
+Fork the repo, add an S3 lifecycle rule, push a PR, and watch the pipeline go green. Step-by-step instructions in the README.
+
+🔗 https://github.com/vivekmittal514/cicd-with-aws-emulator
+
+No AWS account. No secrets to configure. Just Docker, Terraform, and Python.
+
+#AWS #AWSEmulator #DevOps #Terraform #CICD #GitHubActions #InfrastructureAsCode #CloudTesting #OpenSource

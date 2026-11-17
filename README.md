@@ -4,7 +4,16 @@ A sample CI/CD pipeline using **Terraform** for IaC and **AWS Emulator** for eph
 
 ## Architecture
 
-![CI/CD Pipeline with AWS Emulator](docs/architecture.png)
+```
+PR/Push ──> GitHub Actions CI
+              │
+              ├── Terraform Validate + Format
+              └── Ephemeral Environment (AWS Emulator)
+                    │
+                    ├── Phase 1: API Integration Tests (boto3 + pytest)
+                    ├── Phase 2: Terraform Apply (provision resources in emulator)
+                    └── Phase 3: Post-Apply Verification Tests
+```
 
 ## 3-Phase Test Pipeline
 
