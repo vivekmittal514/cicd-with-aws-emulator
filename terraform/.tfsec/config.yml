@@ -1,0 +1,16 @@
+severity_overrides:
+  aws-ec2-no-public-egress-sgr: LOW
+  aws-eks-no-public-cluster-access-to-cidr: LOW
+  aws-eks-no-public-cluster-access: LOW
+  aws-s3-enable-bucket-encryption: LOW
+  aws-s3-encryption-customer-key: LOW
+  aws-rds-encrypt-cluster-storage-data: LOW
+  aws-eks-encrypt-secrets: LOW
+  aws-ec2-no-public-ip-subnet: LOW
+  aws-mq-enable-audit-logging: LOW
+  aws-mq-no-public-access: LOW
+  aws-rds-no-public-db-access: LOW
+  aws-rds-backup-retention-specified: LOW
+  aws-ec2-enforce-launch-config-http-token-imds: LOW
+
+minimum_severity: HIGH

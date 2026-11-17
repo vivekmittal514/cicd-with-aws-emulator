@@ -25,8 +25,10 @@ resource "aws_db_instance" "oracle" {
   skip_final_snapshot        = var.environment != "prod"
   final_snapshot_identifier  = var.environment == "prod" ? "${var.project_name}-oracle-final" : null
 
-  performance_insights_enabled = var.environment == "prod"
-  monitoring_interval          = var.environment == "prod" ? 60 : 0
+  enabled_cloudwatch_logs_exports = ["alert", "audit"]
+  ca_cert_identifier              = "rds-ca-rsa2048-g1"
+  performance_insights_enabled    = var.environment == "prod"
+  monitoring_interval             = var.environment == "prod" ? 60 : 0
 
   tags = { Name = "${var.project_name}-rds-oracle" }
 }

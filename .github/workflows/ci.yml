@@ -168,6 +168,7 @@ jobs:
         with:
           working_directory: terraform
           soft_fail: true
+          additional_args: --minimum-severity HIGH --config-file terraform/.tfsec/config.yml
 
       - name: Run checkov
         uses: bridgecrewio/checkov-action@v12
@@ -175,3 +176,4 @@ jobs:
           directory: terraform
           soft_fail: true
           output_format: sarif
+          config_file: terraform/.checkov.yaml

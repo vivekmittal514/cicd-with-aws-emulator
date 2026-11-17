@@ -2,11 +2,21 @@ resource "aws_eks_cluster" "main" {
   name     = "${var.project_name}-${var.environment}"
   role_arn = aws_iam_role.eks_cluster.arn
 
+  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
   vpc_config {
     subnet_ids              = aws_subnet.private[*].id
     endpoint_private_access = true
     endpoint_public_access  = var.environment != "prod"
+    public_access_cidrs     = var.environment != "prod" ? ["0.0.0.0/0"] : []
     security_group_ids      = [aws_security_group.eks_cluster.id]
+  }
+
+  encryption_config {
+    provider {
+      key_arn = aws_kms_key.eks.arn
+    }
+    resources = ["secrets"]
   }
 
   depends_on = [
@@ -15,6 +25,12 @@ resource "aws_eks_cluster" "main" {
   ]
 
   tags = { Name = "${var.project_name}-eks" }
+}
+
+resource "aws_kms_key" "eks" {
+  description         = "KMS key for EKS secrets encryption"
+  enable_key_rotation = true
+  tags                = { Name = "${var.project_name}-eks-kms" }
 }
 
 resource "aws_eks_node_group" "workers" {

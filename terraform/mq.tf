@@ -23,7 +23,7 @@ resource "aws_mq_broker" "main" {
 
   logs {
     general = true
-    audit   = var.environment == "prod"
+    audit   = true
   }
 
   tags = { Name = "${var.project_name}-mq-broker" }

@@ -21,6 +21,7 @@ resource "aws_instance" "windows" {
   vpc_security_group_ids = [aws_security_group.app.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
   monitoring             = true
+  ebs_optimized          = true
 
   metadata_options {
     http_tokens   = "required"
