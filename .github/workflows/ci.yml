@@ -62,8 +62,10 @@ jobs:
           mkdir -p "$HOME/.aws/emulator"
           docker run -d \
             --name aws-emulator-ci \
+            --user "$(id -u):$(id -g)" \
             --memory=2g --memory-swap=2g \
             -p "127.0.0.1:${EMULATOR_PORT}:${EMULATOR_PORT}" \
+            -e HOME=/home/emulator \
             -v "$HOME/.aws/emulator:/home/emulator/.aws/emulator" \
             aws-emulator -p "$EMULATOR_PORT"
           sleep 2
