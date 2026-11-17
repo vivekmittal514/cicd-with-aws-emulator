@@ -14,11 +14,6 @@ PR/Push ──> GitHub Actions CI
                     ├── Phase 1: API Integration Tests (boto3 + pytest)
                     ├── Phase 2: Terraform Apply (provision resources in emulator)
                     └── Phase 3: Post-Apply Verification Tests
-                          │
-                          └── All pass ──> CD Pipeline
-                                            ├── Dev
-                                            ├── Staging
-                                            └── Production
 ```
 
 ## 3-Phase Test Pipeline
@@ -94,21 +89,6 @@ Runs on every push and PR:
 7. **Phase 3:** Post-apply verification tests (9 tests verifying Terraform-created resources)
 8. Stop emulator
 
-### CD (`.github/workflows/cd.yml`)
-
-Runs after CI passes on `main`:
-1. Deploy to **dev** (auto)
-2. Deploy to **staging** (requires approval)
-3. Deploy to **production** (requires approval)
-
-### GitHub Secrets Required
-
-| Secret | Description |
-|---|---|
-| `AWS_ROLE_ARN_DEV` | IAM role ARN for dev deployments |
-| `AWS_ROLE_ARN_STAGING` | IAM role ARN for staging |
-| `AWS_ROLE_ARN_PROD` | IAM role ARN for production |
-
 ## Try It Yourself
 
 Fork and test the CI/CD pipeline with a real change:
@@ -173,9 +153,8 @@ All three jobs should pass. The emulator tests prove your lifecycle rule is vali
 
 ```
 .
-├── .github/workflows/     # CI/CD pipelines
-│   ├── ci.yml             # 3-phase test with AWS Emulator
-│   └── cd.yml             # Deploy to AWS
+├── .github/workflows/     # CI pipeline
+│   └── ci.yml             # 3-phase test with AWS Emulator
 ├── terraform/             # Infrastructure as Code
 │   ├── providers.tf
 │   ├── variables.tf
