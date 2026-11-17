@@ -29,6 +29,7 @@ resource "aws_eks_cluster" "main" {
 
 resource "aws_kms_key" "eks" {
   description         = "KMS key for EKS secrets encryption"
+  is_enabled          = true
   enable_key_rotation = true
   tags                = { Name = "${var.project_name}-eks-kms" }
 }

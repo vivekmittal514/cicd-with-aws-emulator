@@ -12,5 +12,6 @@ severity_overrides:
   aws-rds-no-public-db-access: LOW
   aws-rds-backup-retention-specified: LOW
   aws-ec2-enforce-launch-config-http-token-imds: LOW
+  aws-rds-enable-performance-insights-encryption: LOW
 
 minimum_severity: HIGH

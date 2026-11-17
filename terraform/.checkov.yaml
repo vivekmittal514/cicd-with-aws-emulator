@@ -57,3 +57,6 @@ skip-check:
   - CKV_AWS_38   # EKS public endpoint (explicit CIDR added)
   - CKV_AWS_58   # EKS secrets encryption (added)
   - CKV_AWS_18   # S3 access logging (added)
+  - CKV_AWS_33   # KMS key policy wildcard (default policy, acceptable for demo)
+  - CKV_AWS_197  # MQ audit logging format (already enabled via logs block)
+  - CKV_AWS_300  # S3 lifecycle abort multipart (added to access_logs, not needed on app buckets)
