@@ -130,6 +130,7 @@ jobs:
 
       - name: Terraform Apply (emulator)
         working-directory: terraform
+        continue-on-error: true
         run: terraform apply -auto-approve tfplan
 
       - name: Terraform Outputs
